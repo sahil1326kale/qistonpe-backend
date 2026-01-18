@@ -17,50 +17,41 @@ export class PaymentsService {
   ) {}
 
   async createPayment(dto: CreatePaymentDto) {
-    // 1️⃣ Find Purchase Order
-    const purchaseOrder = await this.purchaseOrderRepository.findOne({
-      where: { id: dto.purchaseOrderId },
-      relations: ['payments'],
-    });
+  // 1️⃣ Find purchase order WITH payments
+  const purchaseOrder = await this.purchaseOrderRepository.findOne({
+    where: { id: dto.purchaseOrderId },
+    relations: ['payments'],
+  });
 
-    if (!purchaseOrder) {
-      throw new NotFoundException('Purchase Order not found');
-    }
+  if (!purchaseOrder) {
+    throw new NotFoundException('Purchase Order not found');
+  }
 
-    // 2️⃣ Calculate already paid amount
-    const totalPaid = purchaseOrder.payments?.reduce(
+  // 2️⃣ Calculate already paid amount
+  const totalPaid =
+    purchaseOrder.payments?.reduce(
       (sum, p) => sum + Number(p.amount),
       0,
     ) || 0;
 
-    // 3️⃣ Prevent overpayment
-    if (totalPaid + dto.amount > Number(purchaseOrder.totalAmount)) {
-      throw new BadRequestException('Payment exceeds PO total amount');
-    }
-
-    // 4️⃣ Create payment (SAFE DATE)
-    const payment = this.paymentRepository.create({
-      referenceNumber: `PAY-${Date.now()}`,
-      purchaseOrder,
-      paymentDate: new Date(), // ✅ FIXED (no NaN)
-      amount: dto.amount,
-      method: dto.method,
-      notes: dto.notes,
-    });
-
-    await this.paymentRepository.save(payment);
-
-    // 5️⃣ Update PO status
-    const newTotalPaid = totalPaid + dto.amount;
-
-    if (newTotalPaid === Number(purchaseOrder.totalAmount)) {
-      purchaseOrder.status = 'Fully Paid';
-    } else {
-      purchaseOrder.status = 'Partially Paid';
-    }
-
-    await this.purchaseOrderRepository.save(purchaseOrder);
-
-    return payment;
+  // 3️⃣ Prevent overpayment
+  if (totalPaid + dto.amount > Number(purchaseOrder.totalAmount)) {
+    throw new BadRequestException('Payment exceeds PO total amount');
   }
+
+  // 4️⃣ Create payment (SAFE DATE)
+  const payment = this.paymentRepository.create({
+    referenceNumber: `PAY-${Date.now()}`,
+    purchaseOrder: purchaseOrder,
+    paymentDate: new Date(), // ✅ THIS FIXES YOUR ERROR
+    amount: dto.amount,
+    method: dto.method,
+    notes: dto.notes,
+  });
+
+  await this.paymentRepository.save(payment);
+
+  return payment;
+}
+
 }
