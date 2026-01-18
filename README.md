@@ -19,6 +19,7 @@ Built with **NestJS, TypeScript, and PostgreSQL**, following clean architecture 
 ## ⚙️ Setup Instructions
 
 ### 1️⃣ Clone the Repository
+```bash
 git clone <your-github-repo-url>
 cd qistonpe-backend
 
