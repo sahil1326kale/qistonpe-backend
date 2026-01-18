@@ -52,6 +52,12 @@ export class PaymentsService {
   await this.paymentRepository.save(payment);
 
   return payment;
-}
+  }
 
+  async findAll() {
+    return this.paymentRepository.find({
+      relations: ['purchaseOrder'],
+      order: { paymentDate: 'DESC' },
+    });
+  }
 }
