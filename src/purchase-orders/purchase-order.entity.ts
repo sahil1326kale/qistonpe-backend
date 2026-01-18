@@ -19,11 +19,12 @@ export class PurchaseOrder {
   @ManyToOne(() => Vendor)
   vendor: Vendor;
 
-  @Column()
-  poDate: Date;
+  @Column({ type: 'date' })
+poDate: Date;
 
-  @Column()
-  dueDate: Date;
+@Column({ type: 'date' })
+dueDate: Date;
+
 
   @Column('decimal')
   totalAmount: number;

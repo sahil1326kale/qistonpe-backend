@@ -44,9 +44,12 @@ export class PurchaseOrdersService {
     });
 
 
-    const poDate = new Date(dto.poDate);
-    const dueDate = new Date(poDate);
-    dueDate.setDate(poDate.getDate() + vendor.paymentTerms);
+    const poDate = new Date();
+
+
+const dueDate = new Date(poDate);
+dueDate.setDate(dueDate.getDate() + vendor.paymentTerms);
+
 
 
     const today = new Date();
