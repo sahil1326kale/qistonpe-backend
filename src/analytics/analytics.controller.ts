@@ -9,4 +9,9 @@ export class AnalyticsController {
   getVendorOutstanding() {
     return this.analyticsService.getVendorOutstanding();
   }
+  @Get('payment-aging')
+getPaymentAging() {
+  return this.analyticsService.getPaymentAging();
+}
+
 }

@@ -62,4 +62,56 @@ export class AnalyticsService {
 
     return result;
   }
+  async getPaymentAging() {
+  const purchaseOrders = await this.poRepo.find();
+
+  const today = new Date();
+
+  const agingReport = {
+    '0-30_days': {
+      daysRange: '0 to 30 days overdue',
+      amount: 0,
+    },
+    '31-60_days': {
+      daysRange: '31 to 60 days overdue',
+      amount: 0,
+    },
+    '61-90_days': {
+      daysRange: '61 to 90 days overdue',
+      amount: 0,
+    },
+    '90+_days': {
+      daysRange: 'More than 90 days overdue',
+      amount: 0,
+    },
+  };
+
+  for (const po of purchaseOrders) {
+    // Skip fully paid POs
+    if (po.status === 'Fully Paid') continue;
+
+    const dueDate = new Date(po.dueDate);
+    const diffTime = today.getTime() - dueDate.getTime();
+    const overdueDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    // Not overdue yet
+    if (overdueDays <= 0) continue;
+
+    const outstandingAmount = Number(po.totalAmount);
+
+    if (overdueDays <= 30) {
+      agingReport['0-30_days'].amount += outstandingAmount;
+    } else if (overdueDays <= 60) {
+      agingReport['31-60_days'].amount += outstandingAmount;
+    } else if (overdueDays <= 90) {
+      agingReport['61-90_days'].amount += outstandingAmount;
+    } else {
+      agingReport['90+_days'].amount += outstandingAmount;
+    }
+  }
+
+  return agingReport;
 }
+
+}
+
