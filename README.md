@@ -26,11 +26,13 @@ cd qistonpe-backend
 ---
 
 ### 2️⃣ Install Dependencies
+```bash
 npm install
 
 ---
 
 ### 3️⃣ Environment Variables
+```bash
 Create a .env file in the root directory:
 DB_HOST=localhost
 DB_PORT=5432
@@ -42,17 +44,20 @@ DB_NAME=qistonpe_db
 ---
 
 ### 4️⃣ Database Setup
+```bash
 Open pgAdmin
 Create a database named:qistonpe_db
 
 ---
 
 ### 5️⃣ Run the Server
+```bash
 npm run start:dev
 
 ---
 
 ✨ Features
+```bash
 Vendor Management
 Create and list vendors
 Unique vendor name and email
@@ -61,6 +66,7 @@ Active / Inactive status
 ---
 
 Purchase Orders
+```bash
 Create purchase orders with multiple items
 Auto-generated PO number
 Auto-calculated total amount
@@ -70,12 +76,14 @@ Prevent PO creation for inactive vendors
 ---
 
 Payments
+```bash
 Record payments against purchase orders
 Prevent overpayment
 
 ---
 
 Auto-update PO status:
+```bash
 Approved
 Partially Paid
 Fully Paid
@@ -83,12 +91,14 @@ Fully Paid
 ---
 
 Analytics
+```bash
 Vendor outstanding balance report
 Shows pending amount vendor-wise
 
 ---
 
 🔗 API Endpoints
+```bash
 Vendors
 POST /vendors
 GET /vendors
@@ -99,17 +109,20 @@ GET /purchase-orders
 ---
 
 Payments
+```bash
 POST /payments
 GET /payments
 
 ---
 
 Analytics
+```bash
 GET /analytics/vendor-outstanding
 
 ---
 
 🧪 Testing
+```bash
 All APIs were tested using Postman, including:
 Partial and full payment flows
 PO status auto-updates
@@ -119,6 +132,7 @@ Analytics calculations
 ---
 
 🧠 Key Highlights
+```bash
 Clean NestJS module structure
 Business logic handled in services
 DTO-based validation
