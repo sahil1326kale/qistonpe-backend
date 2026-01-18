@@ -1,10 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Payment } from './payment.entity';
 import { PurchaseOrder } from '../purchase-orders/purchase-order.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -13,76 +10,57 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 export class PaymentsService {
   constructor(
     @InjectRepository(Payment)
-    private paymentRepo: Repository<Payment>,
+    private readonly paymentRepository: Repository<Payment>,
 
     @InjectRepository(PurchaseOrder)
-    private poRepo: Repository<PurchaseOrder>,
+    private readonly purchaseOrderRepository: Repository<PurchaseOrder>,
   ) {}
 
   async createPayment(dto: CreatePaymentDto) {
-
-    const po = await this.poRepo.findOne({
+    // 1️⃣ Find Purchase Order
+    const purchaseOrder = await this.purchaseOrderRepository.findOne({
       where: { id: dto.purchaseOrderId },
-      relations: ['items'],
+      relations: ['payments'],
     });
 
-    if (!po) {
+    if (!purchaseOrder) {
       throw new NotFoundException('Purchase Order not found');
     }
 
-
-    const payments = await this.paymentRepo.find({
-      where: { purchaseOrder: { id: po.id } },
-    });
-
-    const totalPaid = payments.reduce(
+    // 2️⃣ Calculate already paid amount
+    const totalPaid = purchaseOrder.payments?.reduce(
       (sum, p) => sum + Number(p.amount),
       0,
-    );
+    ) || 0;
 
-    const outstanding = po.totalAmount - totalPaid;
-
-
-    if (dto.amount > outstanding) {
-      throw new BadRequestException(
-        'Payment amount exceeds outstanding amount',
-      );
+    // 3️⃣ Prevent overpayment
+    if (totalPaid + dto.amount > Number(purchaseOrder.totalAmount)) {
+      throw new BadRequestException('Payment exceeds PO total amount');
     }
 
-
-    const today = new Date();
-    const datePart = today.toISOString().slice(0, 10).replace(/-/g, '');
-    const count = await this.paymentRepo.count();
-    const referenceNumber = `PAY-${datePart}-${count + 1}`;
-
-
-    const payment = this.paymentRepo.create({
-      referenceNumber,
-      purchaseOrder: po,
-      paymentDate: new Date(dto.paymentDate),
+    // 4️⃣ Create payment (SAFE DATE)
+    const payment = this.paymentRepository.create({
+      referenceNumber: `PAY-${Date.now()}`,
+      purchaseOrder,
+      paymentDate: new Date(), // ✅ FIXED (no NaN)
       amount: dto.amount,
       method: dto.method,
       notes: dto.notes,
     });
 
-    await this.paymentRepo.save(payment);
+    await this.paymentRepository.save(payment);
 
+    // 5️⃣ Update PO status
     const newTotalPaid = totalPaid + dto.amount;
 
-    if (newTotalPaid === po.totalAmount) {
-      po.status = 'Fully Paid';
+    if (newTotalPaid === Number(purchaseOrder.totalAmount)) {
+      purchaseOrder.status = 'Fully Paid';
     } else {
-      po.status = 'Partially Paid';
+      purchaseOrder.status = 'Partially Paid';
     }
 
-    await this.poRepo.save(po);
+    await this.purchaseOrderRepository.save(purchaseOrder);
 
     return payment;
-  }
-
-  findAll() {
-    return this.paymentRepo.find({
-      relations: ['purchaseOrder'],
-    });
   }
 }

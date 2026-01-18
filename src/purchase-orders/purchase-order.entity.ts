@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Vendor } from '../vendors/vendor.entity';
 import { POItem } from './po-item.entity';
+import { Payment } from '../payments/payment.entity';
 
 @Entity()
 export class PurchaseOrder {
@@ -34,4 +35,8 @@ dueDate: Date;
 
   @OneToMany(() => POItem, (item) => item.purchaseOrder, { cascade: true })
   items: POItem[];
+
+  @OneToMany(() => Payment, (payment) => payment.purchaseOrder)
+payments: Payment[];
+
 }

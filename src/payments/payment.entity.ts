@@ -14,11 +14,13 @@ export class Payment {
   @Column({ unique: true })
   referenceNumber: string;
 
-  @ManyToOne(() => PurchaseOrder)
-  purchaseOrder: PurchaseOrder;
+  @ManyToOne(() => PurchaseOrder, (po) => po.payments)
+purchaseOrder: PurchaseOrder;
 
-  @Column()
-  paymentDate: Date;
+
+  @Column({ type: 'timestamp' })
+paymentDate: Date;
+
 
   @Column('decimal')
   amount: number;
